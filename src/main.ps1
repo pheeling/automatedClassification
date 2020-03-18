@@ -11,13 +11,16 @@ Param(
     [Parameter(Mandatory=$true, HelpMessage = "Define WebApp ID for connection?")]
     [String]$webAppID,
 
+    [Parameter(Mandatory=$false, HelpMessage = "Define WebApp ID for connection?")]
+    [String]$webAppKeyXMLFile = "$Global:resourcespath\${env:USERNAME}_webAppAPIKey_$($tenantID).xml", 
+
     [Parameter(Mandatory=$true, HelpMessage = "Define Path to NetworkShare List Text File?")]
     [String]$networkShareList
 )
 
 $Global:srcPath = split-path -path $MyInvocation.MyCommand.Definition 
-$Global:mainPath = split-path -path $srcPath
-$Global:resourcespath = join-path -path "$mainPath" -ChildPath "resources"
+$Global:mainPath = split-path -path $Global:srcPath
+$Global:resourcespath = join-path -path "$Global:mainPath" -ChildPath "resources"
 $Global:errorVariable = "Stop"
 $Global:logFile = "$resourcespath\processing.log"
 $Global:AIPStatusFile = "$resourcespath\AIPStatus.log"
@@ -36,14 +39,14 @@ try {
         Get-Credential | Export-Clixml -Path $webAppKeyXMLFile
     } else {
         "$(Get-Date) [RequirementsCheck] token exists" >> $Global:logFile
-        $webAppKeyXML = Import-Clixml $webAppKeyXMLFile
     }
+    $webAppKeyXML = Import-Clixml $webAppKeyXMLFile
 } catch {
     "$(Get-Date) [RequirementsCheck] Module installation failed: $PSItem" >> $Global:logFile
     #Get-NewErrorHandling "$(Get-Date) [RequirementsCheck] Module installation failed" $PSItem
 }
 $networkClassification = Get-NetworkShareClassification($tenantID)
-$networkClassification.connectAIPService($webAppID,$webAppKeyXML.GetNetworkCredential().Password)
+$networkClassification.connectAIPService($webAppID,$webAppKeyXML.GetNetworkCredential().Password, $dataOwner)
 $networkShareArray = $networkClassification.readNetworkShareListFile($networkShareList)
 $networkClassification.fileClassification($networkShareArray, $labelId, $dataOwner)
 

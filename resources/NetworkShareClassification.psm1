@@ -12,13 +12,13 @@ class NetworkShareClassification{
         $this.tenantID = $tenantID
     }
 
-    connectAIPService([String] $webAppID, [String] $webAppKey){
+    connectAIPService([String] $webAppID, [String] $webAppKey, [string] $dataOwner){
         if (!(Test-Path $this.svcCredentialFilepath)) {
             Get-Credential | Export-Clixml -Path $this.svcCredentialFilepath
             $this.svcCredentials = Import-Clixml $this.svcCredentialFilepath
             Write-Error "If your running this script the first time, please run Set-AIPAuthentication with elevated Privileges, 
             Set-AIPAuthentication -AppId $webAppID -AppSecret $webAppKey -TenantId $this.tenantID -DelegatedUser $this.sharepointCredentials.UserName -OnBehalfOf $this.svcCredentials"
-            Set-AIPAuthentication -AppId $webAppID -AppSecret $webAppKey -TenantId $this.tenantID -DelegatedUser $this.sharepointCredentials.UserName -OnBehalfOf $this.svcCredentials
+            Set-AIPAuthentication -AppId $webAppID -AppSecret $webAppKey -TenantId $this.tenantID -DelegatedUser $dataOwner -OnBehalfOf $this.svcCredentials
             Exit 1
         } else {
             "$(Get-Date) [Processing] Set-AIPAuthentication already run" >> $Global:logFile
