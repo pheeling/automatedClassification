@@ -12,7 +12,7 @@ Param(
     [String]$webAppID,
 
     [Parameter(Mandatory=$false, HelpMessage = "Define WebApp ID for connection?")]
-    [String]$webAppKeyXMLFile = "$Global:resourcespath\${env:USERNAME}_webAppAPIKey_$($tenantID).xml", 
+    [String]$webAppKeyXMLFile, 
 
     [Parameter(Mandatory=$true, HelpMessage = "Define Path to NetworkShare List Text File?")]
     [String]$networkShareList
@@ -35,12 +35,16 @@ try {
     if(Get-Command Get-AIPFileStatus -ErrorAction SilentlyContinue){
         "$(Get-Date) [RequirementsCheck] Module AIP exists" >> $Global:logFile
     }
-    if(!(Test-Path $webAppKeyXMLFile)){
-        Get-Credential | Export-Clixml -Path $webAppKeyXMLFile
-    } else {
-        "$(Get-Date) [RequirementsCheck] token exists" >> $Global:logFile
+    while(!($webAppKeyXMLFile)){
+        $webAppKeyXMLFile = "$Global:resourcespath\${env:USERNAME}_webAppAPIKey_$($tenantID).xml"
+        if(!(Test-Path $webAppKeyXMLFile)){
+            $webAppKeyXMLFile = "$Global:resourcespath\${env:USERNAME}_webAppAPIKey_$($tenantID).xml"
+            Get-Credential | Export-Clixml -Path $webAppKeyXMLFile
+        } else {
+            "$(Get-Date) [RequirementsCheck] token exists" >> $Global:logFile
+        }
+        $webAppKeyXML = Import-Clixml $webAppKeyXMLFile
     }
-    $webAppKeyXML = Import-Clixml $webAppKeyXMLFile
 } catch {
     "$(Get-Date) [RequirementsCheck] Module installation failed: $PSItem" >> $Global:logFile
     #Get-NewErrorHandling "$(Get-Date) [RequirementsCheck] Module installation failed" $PSItem
@@ -52,5 +56,5 @@ $networkClassification.fileClassification($networkShareArray, $labelId, $dataOwn
 
 "$(Get-Date) [Processing] Stopped -----------------------" >> $Global:logFile
 
-$sharepoint.fileRetention($Global:logfile)
-$sharepoint.fileRetention($Global:AIPStatusFile)
+$networkClassification.fileRetention($Global:logfile)
+$networkClassification.fileRetention($Global:AIPStatusFile)

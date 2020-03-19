@@ -5,7 +5,7 @@ function Get-NetworkShareClassification($tenantID){
 class NetworkShareClassification{
 
     [String] $tenantID
-    [String] $svcCredentialFilepath = "$Global:resourcespath\${env:USERNAME}_svcCred_$($tenantID).xml"
+    [String] $svcCredentialFilepath = "$Global:resourcespath\admphiestand_svcCred_$($tenantID).xml"
     [PSCredential] $svcCredentials
 
     NetworkShareClassification($tenantID){
@@ -30,13 +30,20 @@ class NetworkShareClassification{
     }
 
     fileClassification($networkShareArray, $labelId, $dataOwner){
-        Get-ChildItem $networkShareArray -Recurse | 
-        Where-Object {".docx",".xlsx",".pptx",".pdf" -eq $_.extension} | 
-        Select-Object -ExpandProperty Fullname | 
-        Get-AIPFileStatus | 
-        Where-Object {$_.IsLabeled -eq $False} |
-        Set-AIPFileLabel -LabelId $labelId -Owner $dataOwner -PreserveFileDetails | 
-        Export-Csv -Append $Global:AIPStatusFile
+        try {
+            foreach ($item in $networkShareArray){
+                Get-ChildItem $item -Recurse | 
+                Where-Object {".docx",".xlsx",".pptx",".pdf" -eq $_.extension} | 
+                Select-Object -ExpandProperty Fullname | 
+                Get-AIPFileStatus | 
+                Where-Object {$_.IsLabeled -eq $False} |
+                Set-AIPFileLabel -LabelId $labelId -Owner $dataOwner -PreserveFileDetails | 
+                Export-Csv -Append $Global:AIPStatusFile
+            }
+        } catch {
+            "$(Get-Date) [FileClassification] File Classification failed: $PSItem" >> $Global:logFile
+            #Get-NewErrorHandling "$(Get-Date) [RequirementsCheck] Module installation failed" $PSItem
+        }
     }
 
     fileRetention($filepath){
