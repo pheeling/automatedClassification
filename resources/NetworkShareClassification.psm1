@@ -5,7 +5,7 @@ function Get-NetworkShareClassification($tenantID){
 class NetworkShareClassification{
 
     [String] $tenantID
-    [String] $svcCredentialFilepath = "$Global:resourcespath\admphiestand_svcCred_$($tenantID).xml"
+    [String] $svcCredentialFilepath = "$Global:resourcespath\${env:USERNAME}_svcCred_$($tenantID).xml"
     [PSCredential] $svcCredentials
 
     NetworkShareClassification($tenantID){
@@ -29,7 +29,7 @@ class NetworkShareClassification{
         return Get-Content -Path $networkShareList
     }
 
-    fileClassification($networkShareArray, $labelId, $dataOwner){
+    fileClassification($networkShareArray, $labelId, $dataOwner) {
         try {
             foreach ($item in $networkShareArray){
                 Get-ChildItem $item -Recurse | 
