@@ -35,7 +35,7 @@ class NetworkShareClassification{
         try {
             foreach ($item in $networkShareArray){
                 $results += Get-ChildItem $item -Recurse | 
-                Where-Object {".docx",".xlsx",".xlsm",".pptx",".pdf" -eq $_.extension} | 
+                Where-Object {".docx",".docm",".xlsx",".xlsm",".pptx",".pptm",".pdf" -eq $_.extension} | 
                 Select-Object -ExpandProperty Fullname | 
                 Get-AIPFileStatus | 
                 #Where-Object {$_.IsLabeled -eq $False} |
