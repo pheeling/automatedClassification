@@ -62,9 +62,14 @@ class NetworkShareClassification{
         }
     }
 
-    fileRetention($filepath){
-        if ((Get-ChildItem -path $filepath).Length -gt 5242880) {
-            Remove-Item -Path $filepath
+    fileRetention($inputFolder){
+        try{
+            foreach ($file in (get-childitem -path $inputFolder | Where-Object {$_.lastwritetime -lt ( (get-date).adddays(-30)) -and $_.Name -like "*.log"} )) {
+                "$(Get-Date) [Retention]  Purging old inputfile:: $file" >> $Global:logFile 
+                Remove-item -path $file.Fullname
+            }
+        } catch {
+            "$(Get-Date) [Retention] $PSitem error with File retention" >> $Global:logFile
         }
     }
 }

@@ -23,7 +23,7 @@ $Global:mainPath = split-path -path $Global:srcPath
 $Global:resourcespath = join-path -path "$Global:mainPath" -ChildPath "resources"
 $Global:errorVariable = "Stop"
 $Global:logFile = "$resourcespath\processing.log"
-$Global:AIPStatusFile = "$resourcespath\AIPStatus.log"
+$Global:AIPStatusFile = "$resourcespath\$(get-date -Format yyyyMMdd_HHMMss)_AIPStatus.log"
 
 Import-Module -Force "$resourcespath\ErrorHandling.psm1"
 Import-Module -Force "$resourcespath\NetworkShareClassification.psm1"
@@ -56,5 +56,4 @@ $networkClassification.fileClassification($networkShareArray, $labelId, $dataOwn
 
 "$(Get-Date) [Processing] Stopped -----------------------" >> $Global:logFile
 
-$networkClassification.fileRetention($Global:logfile)
-$networkClassification.fileRetention($Global:AIPStatusFile)
+$networkClassification.fileRetention($Global:resourcespath)
