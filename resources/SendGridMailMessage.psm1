@@ -61,7 +61,7 @@ class SendGridMailMessage {
         $base64AuthInfo = $this.sendGridApiKey.GetNetworkCredential().Password
         $headers = @{Authorization="Bearer $($base64AuthInfo)"}
         $json = $this.mailValues | ConvertTo-Json -Depth 10
-        return $this.convertContentToObject((Invoke-WebRequest -Uri $url -Headers $headers -ContentType "application/json" -Method "POST" -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -SkipHttpErrorCheck))
+        return $this.convertContentToObject((Invoke-WebRequest -Uri $url -Headers $headers -ContentType "application/json" -Method "POST" -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) <#-SkipHttpErrorCheck#> -UseBasicParsing))
     }
 
     validation($value){

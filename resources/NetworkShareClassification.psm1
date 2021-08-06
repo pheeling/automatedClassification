@@ -34,15 +34,26 @@ class NetworkShareClassification{
     fileClassification($networkShareArray, $labelId, $dataOwner) {
         $results = @()
         $failed = @()
+        $AIPFileStatusError = New-Object System.Object
         try {
             foreach ($item in $networkShareArray){
                 $results += Get-ChildItem $item -Recurse | 
                 Where-Object {".docx",".docm",".xlsx",".xlsm",".pptx",".pptm",".pdf" -eq $_.extension} | 
                 Select-Object -ExpandProperty Fullname | 
-                Get-AIPFileStatus | 
+                Get-AIPFileStatus -ErrorAction SilentlyContinue -ErrorVariable AIPFileStatusError | 
                 #Where-Object {$_.IsLabeled -eq $False} |
                 Select-Object -ExpandProperty FileName |
                 Set-AIPFileLabel -LabelId $labelId -Owner $dataOwner -PreserveFileDetails
+                if((($AIPFileStatusError.GetType()).name -ne "Object") -and (-not [string]::IsNullOrEmpty($AIPFileStatusError))){
+                    foreach ($entry in $AIPFileStatusError){
+                        "$(Get-Date) [FileClassification] File Classification failed: $($entry.TargetObject):: Status: $($entry.ToString())" >> $Global:logFile
+                        #Debugging may produce to much noise
+                        #$this.errorBody += @("<br>")
+                        #$this.errorBody += @("<li>Name: $($entry.TargetObject)</li>")
+                        #$this.errorBody += @("<li>Status: $($entry.CategoryInfo.Reason)</li>")
+                        #$this.errorBody += @("<li>Comment: $($entry.ToString())</li>")
+                    }
+                }
             }
         } catch {
             "$(Get-Date) [FileClassification] File Classification failed: $PSItem" >> $Global:logFile
