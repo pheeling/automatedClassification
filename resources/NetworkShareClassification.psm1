@@ -7,6 +7,8 @@ class NetworkShareClassification{
     [String] $tenantID
     [String] $svcCredentialFilepath = "$Global:resourcespath\admphiestand_svcCred_$($tenantID).xml"
     [PSCredential] $svcCredentials
+    $errorBody = [System.Collections.ArrayList]::New()
+
 
     NetworkShareClassification($tenantID){
         $this.tenantID = $tenantID
@@ -49,16 +51,11 @@ class NetworkShareClassification{
         foreach ($entry in $results){
             $entry | Export-Csv -Append $Global:AIPStatusFile
             if($entry.status -eq "Failed"){
-                $failed += @("<br>")
-                $failed += @("<li>Name: $($entry.Filename)</li>")
-                $failed += @("<li>Status: $($entry.Status)</li>")
-                $failed += @("<li>Comment: $($entry.Comment)</li>")
+                $this.errorBody += @("<br>")
+                $this.errorBody += @("<li>Name: $($entry.Filename)</li>")
+                $this.errorBody += @("<li>Status: $($entry.Status)</li>")
+                $this.errorBody += @("<li>Comment: $($entry.Comment)</li>")
             }
-        }
-
-        if($failed.count -gt 0){
-            $statusMail = Get-NewErrorHandling "DZ: AIP Classification Error"
-            $statusMail.sendMailwithInformMsgContent($failed)
         }
     }
 

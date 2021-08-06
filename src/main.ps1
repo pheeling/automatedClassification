@@ -15,7 +15,10 @@ Param(
     [String]$webAppKeyXMLFile, 
 
     [Parameter(Mandatory=$true, HelpMessage = "Define Path to NetworkShare List Text File?")]
-    [String]$networkShareList
+    [String]$networkShareList,
+
+    [Parameter(Mandatory=$true, HelpMessage = "Send Grid API Key?")]
+    [String]$sendGridApiKey    
 )
 
 $Global:srcPath = split-path -path $MyInvocation.MyCommand.Definition 
@@ -27,8 +30,12 @@ $Global:AIPStatusFile = "$resourcespath\$(get-date -Format yyyyMMdd_HHMMss)_AIPS
 
 Import-Module -Force "$resourcespath\ErrorHandling.psm1"
 Import-Module -Force "$resourcespath\NetworkShareClassification.psm1"
+Import-Module -Force "$resourcespath\SendGridMailMessage.psm1"
 
 "$(Get-Date) [Processing] Start--------------------------" >> $Global:logFile
+
+#Load EmailFunction
+$sendGrid = Get-SendGridMailMessage $sendGridApiKey
 
 #Requirements Check
 try {
@@ -53,6 +60,11 @@ $networkClassification = Get-NetworkShareClassification($tenantID)
 $networkClassification.connectAIPService($webAppID,$webAppKeyXML.GetNetworkCredential().Password, $dataOwner)
 $networkShareArray = $networkClassification.readNetworkShareListFile($networkShareList)
 $networkClassification.fileClassification($networkShareArray, $labelId, $dataOwner)
+
+if ($networkClassification.errorBody -ne $null){
+    $sendGrid.setMailValues("servicedesk@dinotronic.ch","DZ: AIP Classification Error","$($networkClassification.errorBody)")
+    $sendGrid.sendMailMessage()
+}
 
 "$(Get-Date) [Processing] Stopped -----------------------" >> $Global:logFile
 
